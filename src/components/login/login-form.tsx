@@ -11,6 +11,10 @@ import FormInputElement from "../shared/form-input";
 import { z } from "zod";
 import Loader from "../shared/loader";
 import { useRouter } from "next/navigation";
+import { loginAPI } from "@/lib/api";
+import { useDispatch } from "react-redux";
+import { logIn } from "@/redux/auth-slice";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -23,6 +27,7 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -37,18 +42,25 @@ export function LoginForm({
       setLoading(true);
       const { email, password } = values;
 
-      //   const res = await axios.post(sendOTPAPI, {
-      //     email,
-      //   });
+      const res = await axios.post(loginAPI, {
+        email,
+        password,
+      });
 
-      //   if (res.status === 200) {
-      //   }
-      router.push("/dashboard");
+      if (res.status === 200) {
+        dispatch(logIn({ isAuth: true, token: res.data.userToken }));
+        router.push("/dashboard");
+        toast.success("Welcome to Zuari Industries!");
+      }
     } catch (error: any) {
       console.log(error);
       if (error.response.status === 404 || error.response.status === 401) {
         form.setError("email", {
-          message: error.response.data.error,
+          message: error.response.data.message,
+          type: "manual",
+        });
+        form.setError("password", {
+          message: error.response.data.message,
           type: "manual",
         });
       }
@@ -89,7 +101,10 @@ export function LoginForm({
               />
 
               {/* Submit Button */}
-              <Button type="submit" className="w-full h-[45px] rounded-[4px] shadow-2xl cursor-pointer">
+              <Button
+                type="submit"
+                className="w-full h-[45px] rounded-[4px] shadow-2xl cursor-pointer"
+              >
                 {loading ? <Loader /> : "Login"}
               </Button>
             </form>

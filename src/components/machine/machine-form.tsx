@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -21,9 +21,12 @@ import { MACHINE } from "@/types";
 import { Dispatch, SetStateAction, useEffect } from "react";
 import { SheetClose, SheetFooter } from "../ui/sheet";
 import { Pencil, PlusCircleIcon } from "lucide-react";
+import { createAuthenticatedAxiosInstance } from "@/utils/protected-axios";
+import { toast } from "sonner";
+import { addMachinesAPI } from "@/lib/api";
 
 const machineSchema = z.object({
-  name: z.enum([
+  machine_name: z.enum([
     "DS_L1_A",
     "DS_M1_A",
     "DS_M2_A",
@@ -38,8 +41,8 @@ const machineSchema = z.object({
     "REF_S1_B",
     "REF_25KG_A",
   ]),
-  type: z.enum(["DS", "REF"]),
-  grade: z.enum(["L1", "M1", "M2", "S1"]),
+  machine_type: z.enum(["DS", "REF"]),
+  machine_grade: z.enum(["L1", "M1", "M2", "S1"]),
   bagSize: z.enum(["25kg", "50kg"]),
 });
 
@@ -48,50 +51,88 @@ type MachineFormValues = z.infer<typeof machineSchema>;
 type Props = {
   data: MACHINE | undefined;
   setOpen: Dispatch<SetStateAction<boolean>> | undefined;
-  setReloadedTableData: Dispatch<SetStateAction<boolean>> | undefined;
+  setReloadedTableData: Dispatch<SetStateAction<boolean>>;
   token: string;
 };
 
-export default function MachineForm({ data }: Props) {
+export default function MachineForm({
+  data,
+  token,
+  setReloadedTableData,
+}: Props) {
   const form = useForm<MachineFormValues>({
     resolver: zodResolver(machineSchema),
     defaultValues: {
-      name: undefined,
-      type: undefined,
-      grade: undefined,
+      machine_name: undefined,
+      machine_type: undefined,
+      machine_grade: undefined,
       bagSize: undefined,
     },
   });
 
-  const onSubmit = (data: MachineFormValues) => {
+  const axiosInstance = createAuthenticatedAxiosInstance({}, token);
+
+  const onSubmit = async (values: MachineFormValues) => {
+    try {
+      const { machine_grade, machine_name, machine_type, bagSize } = values;
+      console.log(values);
+      if (data) {
+        const res = await axiosInstance.patch(`${addMachinesAPI}/${data.id}`, {
+          machine_grade,
+          machine_name,
+          machine_type,
+          bagSize,
+        });
+
+        if (res.status === 200) {
+          setReloadedTableData(true);
+          toast.success("Machine Config updated successfully!");
+        }
+      } else {
+        const res = await axiosInstance.post(`${addMachinesAPI}`, {
+          machine_grade,
+          machine_name,
+          machine_type,
+          bagSize,
+        });
+
+        if (res.status === 201) {
+          setReloadedTableData(true);
+          toast.success("Machine Config added successfully!");
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
     console.log(data);
   };
 
   useEffect(() => {
     if (data) {
-      form.setValue("name", data.name);
+      form.setValue("machine_name", data.machine_name);
       form.setValue("bagSize", data.bagSize);
-      form.setValue("grade", data.grade);
-      form.setValue("type", data.type);
+      form.setValue("machine_grade", data.machine_grade);
+      form.setValue("machine_type", data.machine_type);
     }
   }, [data]);
 
   return (
-    <Form {...form}>
+    <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4 px-4 w-full"
       >
         <FormField
           control={form.control}
-          name="name"
+          name="machine_name"
           render={({ field }) => (
             <FormItem className="w-full">
               <FormLabel>Name</FormLabel>
               <Select
                 disabled={data ? true : false}
                 onValueChange={field.onChange}
-                defaultValue={data ? data.name : field.value}
+                defaultValue={data ? data.machine_name : field.value}
               >
                 <FormControl className=" w-full">
                   <SelectTrigger>
@@ -127,13 +168,13 @@ export default function MachineForm({ data }: Props) {
 
         <FormField
           control={form.control}
-          name="type"
+          name="machine_type"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Type</FormLabel>
               <Select
                 onValueChange={field.onChange}
-                defaultValue={data ? data.type : field.value}
+                defaultValue={data ? data.machine_type : field.value}
               >
                 <FormControl className=" w-full">
                   <SelectTrigger>
@@ -152,13 +193,13 @@ export default function MachineForm({ data }: Props) {
 
         <FormField
           control={form.control}
-          name="grade"
+          name="machine_grade"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Grade</FormLabel>
               <Select
                 onValueChange={field.onChange}
-                defaultValue={data ? data.grade : field.value}
+                defaultValue={data ? data.machine_grade : field.value}
               >
                 <FormControl className=" w-full">
                   <SelectTrigger>
@@ -218,6 +259,6 @@ export default function MachineForm({ data }: Props) {
           )}
         </Button>
       </form>
-    </Form>
+    </FormProvider>
   );
 }

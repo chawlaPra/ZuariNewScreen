@@ -42,6 +42,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import UpdateMachineDailog from "./update-machine";
 import DeleteDialog from "../shared/delete-dailog";
+import { deleteMachinesAPI } from "@/lib/api";
+import { toast } from "sonner";
 
 type Props = {
   data: MACHINE[];
@@ -50,8 +52,6 @@ type Props = {
 };
 
 export function MachineDataTable({ data, token, setIsReloaded }: Props) {
-  const userType = useSelector((state: RootState) => state.auth.userType);
-  const id = useSelector((state: RootState) => state.auth._id);
   const [selectedMachine, setSelectedMachine] = React.useState<
     MACHINE | undefined
   >(undefined);
@@ -68,9 +68,9 @@ export function MachineDataTable({ data, token, setIsReloaded }: Props) {
 
   const axiosInstance = createAuthenticatedAxiosInstance({}, token);
 
-  let columns: ColumnDef<MACHINE>[] = [
+  const columns: ColumnDef<MACHINE>[] = [
     {
-      accessorKey: "name",
+      accessorKey: "machine_name",
       header: ({ column }) => {
         return (
           <Button
@@ -84,11 +84,13 @@ export function MachineDataTable({ data, token, setIsReloaded }: Props) {
         );
       },
       cell: ({ row }) => (
-        <div className="capitalize w-[100px]">{row.getValue("name")}</div>
+        <div className="capitalize w-[100px]">
+          {row.getValue("machine_name")}
+        </div>
       ),
     },
     {
-      accessorKey: "type",
+      accessorKey: "machine_type",
       header: ({ column }) => {
         return (
           <Button
@@ -102,11 +104,13 @@ export function MachineDataTable({ data, token, setIsReloaded }: Props) {
         );
       },
       cell: ({ row }) => (
-        <div className="w-[100px]">{<Badge>{row.original.type}</Badge>}</div>
+        <div className="w-[100px]">
+          {<Badge>{row.original.machine_type}</Badge>}
+        </div>
       ),
     },
     {
-      accessorKey: "grade",
+      accessorKey: "machine_grade",
       header: ({ column }) => {
         return (
           <Button
@@ -120,7 +124,7 @@ export function MachineDataTable({ data, token, setIsReloaded }: Props) {
         );
       },
       cell: ({ row }) => {
-        return <div className="">{row.original.grade}</div>;
+        return <div className="">{row.original.machine_grade}</div>;
       },
     },
     {
@@ -199,28 +203,21 @@ export function MachineDataTable({ data, token, setIsReloaded }: Props) {
     },
   });
 
-  const deleteHandler = async(id:string)=>{
+  const deleteHandler = async (id: string) => {
     try {
-      
+      const res = await axiosInstance.delete(`${deleteMachinesAPI}/${id}`);
+
+      if (res.status === 200) {
+        toast.success("Machine config deleted successfully!");
+        setIsReloaded(true);
+      }
     } catch (error) {
-      
+      console.log(error);
     }
-  }
+  };
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center py-4">
-        <Input
-          placeholder="Filter name..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-
-        <AddNewMachine token={token} />
-      </div>
 
       <div className="">
         <Table>

@@ -8,15 +8,15 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { PlusCircle } from "lucide-react";
-import MachineForm from "./machine-form";
 import { Dispatch, SetStateAction } from "react";
+import QualityForm from "./quality-form";
 
 type Props = {
-  token :string;
+  token: string;
   setReloadedTableData: Dispatch<SetStateAction<boolean>>;
-}
+};
 
-export default function AddNewMachine({token, setReloadedTableData}:Props) {
+export default function AddNewQuality({ token, setReloadedTableData }: Props) {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -26,11 +26,14 @@ export default function AddNewMachine({token, setReloadedTableData}:Props) {
       </SheetTrigger>
       <SheetContent className="w-full">
         <SheetHeader>
-          <SheetTitle>Add New Machine</SheetTitle>
+          <SheetTitle>Add New Quality Parameters</SheetTitle>
           <SheetDescription></SheetDescription>
         </SheetHeader>
 
-        <MachineForm token={token} setOpen={undefined} setReloadedTableData={setReloadedTableData}  data={undefined} />
+        <QualityForm
+          token={token}
+          setReloadedTableData={setReloadedTableData}
+        />
       </SheetContent>
     </Sheet>
   );

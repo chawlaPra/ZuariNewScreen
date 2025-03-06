@@ -1,11 +1,13 @@
 "use client";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
+import { NavUser } from "@/components/dashboard/nav-user";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import useGetSelfInfo from "@/hooks/use-self";
 import { RootState } from "@/redux/store";
 import { useState } from "react";
 import { useSelector } from "react-redux";
@@ -19,6 +21,8 @@ export default function DashboardLayout({
   const [isReloaded, setIsReloaded] = useState(true);
   const [isSessionExpired, setSessionExpired] = useState(false);
 
+  const {data, loading} = useGetSelfInfo(token, isReloaded, setIsReloaded, setSessionExpired);
+
   return (
     <SidebarProvider className="h-full">
       <AppSidebar />
@@ -28,7 +32,9 @@ export default function DashboardLayout({
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
           </div>
+
           <div className="flex space-x-3 px-3 items-center justify-center">
+            {data && !loading && <NavUser user={data} />}
           </div>
         </header>
         <main className="overflow-y-auto">

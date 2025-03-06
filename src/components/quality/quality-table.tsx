@@ -41,7 +41,7 @@ import {
 import { createAuthenticatedAxiosInstance } from "@/utils/protected-axios";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { MACHINE, MainQuality } from "@/types";
+import { MACHINE, MainQuality, QUALITY } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,18 +53,19 @@ import {
 import DeleteDialog from "../shared/delete-dailog";
 import { Checkbox } from "../ui/checkbox";
 import CellWrapper from "./cell-wrapper";
+import useGetSelfInfo from "@/hooks/use-self";
 
 type Props = {
-  data: MainQuality[];
+  data: QUALITY[];
   token: string;
   setIsReloaded: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export function QualityDataTable({ data, token, setIsReloaded }: Props) {
-  const userType = useSelector((state: RootState) => state.auth.userType);
-  const id = useSelector((state: RootState) => state.auth._id);
+  
+
   const [selectedMachine, setSelectedMachine] = React.useState<
-    MainQuality | undefined
+    QUALITY | undefined
   >(undefined);
 
   const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
@@ -76,20 +77,19 @@ export function QualityDataTable({ data, token, setIsReloaded }: Props) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [rowSelected, setRowSelected] = React.useState<undefined | MainQuality>(
+  const [rowSelected, setRowSelected] = React.useState<undefined | QUALITY>(
     undefined
   );
 
   const axiosInstance = createAuthenticatedAxiosInstance({}, token);
 
-  let columns: ColumnDef<MainQuality>[] = [
+  let columns: ColumnDef<QUALITY>[] = [
     {
       id: "select",
       header: ({ table }) => <></>,
       cell: ({ row }) => (
         <div>
           <Button
-            disabled={row.original.subQualities.length === 0}
             onClick={() => {
               if (row.original.id !== rowSelected?.id || !rowSelected) {
                 setRowSelected(row.original);
@@ -110,7 +110,7 @@ export function QualityDataTable({ data, token, setIsReloaded }: Props) {
       enableHiding: false,
     },
     {
-      accessorKey: "tagName",
+      accessorKey: "tag_name",
       header: ({ column }) => {
         return (
           <Button
@@ -123,10 +123,10 @@ export function QualityDataTable({ data, token, setIsReloaded }: Props) {
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.original.tagName}</div>,
+      cell: ({ row }) => <div>{row.original.tag_name}</div>,
     },
     {
-      accessorKey: "counterReading",
+      accessorKey: "counter_reading",
       header: ({ column }) => {
         return (
           <Button
@@ -141,12 +141,12 @@ export function QualityDataTable({ data, token, setIsReloaded }: Props) {
       },
       cell: ({ row }) => (
         <div className="w-[100px]">
-          {<Badge variant={"secondary"}>{row.original.counterReading}</Badge>}
+          {<Badge variant={"secondary"}>{row.original.counter_reading}</Badge>}
         </div>
       ),
     },
     {
-      accessorKey: "calculatedQuantityInQunital",
+      accessorKey: "calculated_quantity_quintal",
       header: ({ column }) => {
         return (
           <Button
@@ -161,12 +161,12 @@ export function QualityDataTable({ data, token, setIsReloaded }: Props) {
       },
       cell: ({ row }) => {
         return (
-          <div className="">{row.original.calculatedQuantityInQunital}</div>
+          <div className="">{row.original.calculated_quantity_quintal}</div>
         );
       },
     },
     {
-      accessorKey: "lastApprovedQuantity",
+      accessorKey: "last_approved_quantity",
       header: ({ column }) => {
         return (
           <Button
@@ -183,23 +183,20 @@ export function QualityDataTable({ data, token, setIsReloaded }: Props) {
       cell: ({ row }) => {
         return (
           <div className="">
-            {row.original.subQualities.length === 0 ? (
               <CellWrapper
                 inputText={
-                  row.original.calculatedQuantityInQunital.toString() || ""
+                  row.original.last_approved_quantity.toString() || ""
                 }
                 type={"number"}
                 row={row}
               />
-            ) : (
-              row.original.calculatedQuantityInQunital
-            )}
+            
           </div>
         );
       },
     },
     {
-      accessorKey: "QaApprovedQuantity",
+      accessorKey: "qa_approved_quantity",
       header: ({ column }) => {
         return (
           <Button
@@ -216,21 +213,17 @@ export function QualityDataTable({ data, token, setIsReloaded }: Props) {
       cell: ({ row }) => {
         return (
           <div className="">
-            {row.original.subQualities.length === 0 ? (
               <CellWrapper
-                inputText={row.original.QaApprovedQuantity.toString() || ""}
+                inputText={row.original.qa_approved_quantity.toString() || ""}
                 type={"number"}
                 row={row}
               />
-            ) : (
-              row.original.QaApprovedQuantity
-            )}
           </div>
         );
       },
     },
     {
-      accessorKey: "calculatedQualityReadingTime",
+      accessorKey: "calculated_quality_last_reading_time",
       header: ({ column }) => {
         return (
           <Button
@@ -246,12 +239,12 @@ export function QualityDataTable({ data, token, setIsReloaded }: Props) {
       },
       cell: ({ row }) => {
         return (
-          <div className="">{row.original.calculatedQualityReadingTime}</div>
+          <div className="">{row.original.calculated_quality_last_reading_time}</div>
         );
       },
     },
     {
-      accessorKey: "lastApprovedQualityReadingTime",
+      accessorKey: "qa_approved_quality_last_approved_time",
       header: ({ column }) => {
         return (
           <Button
@@ -267,7 +260,7 @@ export function QualityDataTable({ data, token, setIsReloaded }: Props) {
       },
       cell: ({ row }) => {
         return (
-          <div className="">{row.original.lastApprovedQualityReadingTime}</div>
+          <div className="">{row.original.qa_approved_quality_last_approved_time}</div>
         );
       },
     },
@@ -326,16 +319,6 @@ export function QualityDataTable({ data, token, setIsReloaded }: Props) {
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center py-4">
-        <Input
-          placeholder="Filter name..."
-          value={(table.getColumn("tagName")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("tagName")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-      </div>
 
       <div className="">
         <Table>
@@ -378,52 +361,6 @@ export function QualityDataTable({ data, token, setIsReloaded }: Props) {
                     ))}
                   </TableRow>
 
-                  {/* Sub Qualities as Child Rows */}
-                  {row.getIsSelected() &&
-                    rowSelected &&
-                    rowSelected.id === row.original.id &&
-                    rowSelected.subQualities.map((subQuality, index) => (
-                      <TableRow key={`sub-${index}`} className="bg-gray-100">
-                        {/* Empty Cell for Checkbox Column */}
-                        <TableCell></TableCell>
-
-                        {/* Sub Quality Data Columns */}
-                        <TableCell className="pl-6 font-semibold">
-                          {subQuality.tagName} (Sub Quality)
-                        </TableCell>
-                        <TableCell>{subQuality.counterReading}</TableCell>
-                        <TableCell>
-                          {subQuality.calculatedQuantityInQunital}
-                        </TableCell>
-                        <TableCell>
-                          <CellWrapper
-                            inputText={
-                              subQuality.lastApprovedQuantity.toString() || ""
-                            }
-                            type={"number"}
-                            row={row}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <CellWrapper
-                            inputText={
-                              subQuality.QaApprovedQuantity.toString() || ""
-                            }
-                            type={"number"}
-                            row={row}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {subQuality.calculatedQualityReadingTime}
-                        </TableCell>
-                        <TableCell>
-                          {subQuality.lastApprovedQualityReadingTime}
-                        </TableCell>
-
-                        {/* Empty Cell for Actions Column */}
-                        <TableCell></TableCell>
-                      </TableRow>
-                    ))}
                 </React.Fragment>
               ))
             ) : (
@@ -471,3 +408,56 @@ export function QualityDataTable({ data, token, setIsReloaded }: Props) {
     </div>
   );
 }
+
+
+
+
+
+
+
+// {/* Sub Qualities as Child Rows */}
+// {row.getIsSelected() &&
+//   rowSelected &&
+//   rowSelected.id === row.original.id &&
+//   rowSelected.subQualities.map((subQuality, index) => (
+//     <TableRow key={`sub-${index}`} className="bg-gray-100">
+//       {/* Empty Cell for Checkbox Column */}
+//       <TableCell></TableCell>
+
+//       {/* Sub Quality Data Columns */}
+//       <TableCell className="pl-6 font-semibold">
+//         {subQuality.tagName} (Sub Quality)
+//       </TableCell>
+//       <TableCell>{subQuality.counter_reading}</TableCell>
+//       <TableCell>
+//         {subQuality.c}
+//       </TableCell>
+//       <TableCell>
+//         <CellWrapper
+//           inputText={
+//             subQuality.lastApprovedQuantity.toString() || ""
+//           }
+//           type={"number"}
+//           row={row}
+//         />
+//       </TableCell>
+//       <TableCell>
+//         <CellWrapper
+//           inputText={
+//             subQuality.QaApprovedQuantity.toString() || ""
+//           }
+//           type={"number"}
+//           row={row}
+//         />
+//       </TableCell>
+//       <TableCell>
+//         {subQuality.calculatedQualityReadingTime}
+//       </TableCell>
+//       <TableCell>
+//         {subQuality.lastApprovedQualityReadingTime}
+//       </TableCell>
+
+//       {/* Empty Cell for Actions Column */}
+//       <TableCell></TableCell>
+//     </TableRow>
+//   ))}

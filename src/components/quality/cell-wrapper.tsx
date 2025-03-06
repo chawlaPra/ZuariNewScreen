@@ -1,10 +1,10 @@
-import { MainQuality } from "@/types";
+import { MainQuality, QUALITY } from "@/types";
 import { Row } from "@tanstack/react-table";
 import React, { HTMLInputTypeAttribute, useState } from "react";
 import { Input } from "../ui/input";
 
 type Props = {
-  row: Row<MainQuality>;
+  row: Row<QUALITY>;
   inputText: string;
   type: HTMLInputTypeAttribute;
 };

@@ -2,20 +2,6 @@
 
 import * as React from "react";
 import {
-  Box,
-  Codesandbox,
-  Package,
-  PackagePlus,
-  PanelLeft,
-  Settings,
-  SquarePlus,
-  TrendingDown,
-  Store,
-  Warehouse,
-  ShoppingCartIcon,
-  BookUser,
-  UserPen,
-  FileUser,
   FileCheckIcon,
   Boxes,
 } from "lucide-react";
